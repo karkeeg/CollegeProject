@@ -1,0 +1,151 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" version="29.3.6">
+  <diagram name="Page-1" id="yYsGLi3MU48bcaykeAe8">
+    <mxGraphModel dx="1237" dy="664" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="nsbys6xLYNa807L00nww-1" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="Admin" vertex="1">
+          <mxGeometry height="60" width="60" x="100" y="192" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-2" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="Teacher" vertex="1">
+          <mxGeometry height="71" width="71" x="369" y="432" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-3" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="Student" vertex="1">
+          <mxGeometry height="71" width="71" x="371" y="278" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-4" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="1.0 Authentication" vertex="1">
+          <mxGeometry height="108" width="108" x="506" y="168" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-5" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="2.0 Student Management" vertex="1">
+          <mxGeometry height="108" width="108" x="238" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-6" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="3.0 Attendance Tracking" vertex="1">
+          <mxGeometry height="107" width="107" x="590" y="409" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-7" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="4.0 Marks Management" vertex="1">
+          <mxGeometry height="116" width="116" x="498" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-8" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="5.0 Report Generation" vertex="1">
+          <mxGeometry height="108" width="108" x="626" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-9" parent="1" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;" value="6.0 Notice Management" vertex="1">
+          <mxGeometry height="100" width="100" x="200" y="306.5" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-10" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;" value="User Database" vertex="1">
+          <mxGeometry height="75" width="117" x="757" y="184.5" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-11" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;" value="Student Records" vertex="1">
+          <mxGeometry height="77" width="131" x="464" y="73" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-12" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;" value="Attendance Database" vertex="1">
+          <mxGeometry height="82" width="168" x="832" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-13" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;" value="Marks Database" vertex="1">
+          <mxGeometry height="77" width="126" x="743" y="569.5" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-14" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;" value="Notice Store" vertex="1">
+          <mxGeometry height="73" width="104" x="198" y="516" as="geometry" />
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-15" edge="1" parent="1" source="nsbys6xLYNa807L00nww-1" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.5;rounded=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="nsbys6xLYNa807L00nww-4" value="Credentials">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="593" y="213" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-16" edge="1" parent="1" source="nsbys6xLYNa807L00nww-2" style="curved=0;startArrow=none;endArrow=block;exitX=0.82;exitY=0;entryX=0.23;entryY=1;rounded=0;" target="nsbys6xLYNa807L00nww-4" value="Credentials">
+          <mxGeometry relative="1" x="-0.497" y="-8" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-17" edge="1" parent="1" source="nsbys6xLYNa807L00nww-3" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.07;entryX=0;entryY=0.73;rounded=0;" target="nsbys6xLYNa807L00nww-4" value="Credentials">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-18" edge="1" parent="1" source="nsbys6xLYNa807L00nww-4" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.37;entryX=0;entryY=0.3;rounded=0;" target="nsbys6xLYNa807L00nww-10" value="Verify User">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-19" edge="1" parent="1" source="nsbys6xLYNa807L00nww-10" style="curved=0;startArrow=none;endArrow=block;exitX=0;exitY=0.89;entryX=1;entryY=0.73;rounded=0;" target="nsbys6xLYNa807L00nww-4" value="User Details">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-20" edge="1" parent="1" source="nsbys6xLYNa807L00nww-1" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.8;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-5" value="Student Data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="186" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-21" edge="1" parent="1" source="nsbys6xLYNa807L00nww-5" style="curved=1;startArrow=none;endArrow=block;exitX=1;exitY=0.5;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-11" value="Store / Update">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-22" edge="1" parent="1" source="nsbys6xLYNa807L00nww-2" style="curved=0;startArrow=none;endArrow=block;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-6" value="Attendance Info">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-23" edge="1" parent="1" source="nsbys6xLYNa807L00nww-6" style="curved=1;startArrow=none;endArrow=block;exitX=1;exitY=0.5;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-12" value="Save / Retrieve">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-24" edge="1" parent="1" source="nsbys6xLYNa807L00nww-2" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.9;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-7" value="Marks Info">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-25" edge="1" parent="1" source="nsbys6xLYNa807L00nww-7" style="curved=1;startArrow=none;endArrow=block;exitX=1;exitY=0.5;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-13" value="Store">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-26" edge="1" parent="1" source="nsbys6xLYNa807L00nww-3" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.22;entryX=0;entryY=0.26;rounded=0;" target="nsbys6xLYNa807L00nww-8" value="Result Request">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-27" edge="1" parent="1" source="nsbys6xLYNa807L00nww-8" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.27;entryX=0;entryY=0;rounded=0;entryDx=0;entryDy=10;entryPerimeter=0;" target="nsbys6xLYNa807L00nww-12" value="Read Attendance">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-28" edge="1" parent="1" source="nsbys6xLYNa807L00nww-8" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.76;entryX=0.36;entryY=0;rounded=0;" target="nsbys6xLYNa807L00nww-13" value="Read Marks">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-29" edge="1" parent="1" source="nsbys6xLYNa807L00nww-8" style="curved=0;startArrow=none;endArrow=block;exitX=0;exitY=0.7;entryX=1;entryY=0.74;rounded=0;" target="nsbys6xLYNa807L00nww-3" value="Result Report">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-30" edge="1" parent="1" source="nsbys6xLYNa807L00nww-1" style="curved=0;startArrow=none;endArrow=block;exitX=0.68;exitY=1;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-9" value="Notice Content">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-31" edge="1" parent="1" source="nsbys6xLYNa807L00nww-9" style="curved=0;startArrow=none;endArrow=block;exitX=0.5;exitY=1;rounded=0;exitDx=0;exitDy=0;" target="nsbys6xLYNa807L00nww-14" value="Store Notice">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-32" edge="1" parent="1" source="nsbys6xLYNa807L00nww-9" style="curved=0;startArrow=none;endArrow=block;exitX=1;exitY=0.51;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-3" value="View Notices">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nsbys6xLYNa807L00nww-33" edge="1" parent="1" source="nsbys6xLYNa807L00nww-9" style="curved=0;startArrow=none;endArrow=block;exitX=0.75;exitY=1;entryX=0;entryY=0.5;rounded=0;" target="nsbys6xLYNa807L00nww-2" value="View Notices">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
