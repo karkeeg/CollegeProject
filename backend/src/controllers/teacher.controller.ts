@@ -24,6 +24,34 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const { fullName, department, qualification } = req.body;
+    const teacherId = req.user!.id;
+
+    const teacher = await prisma.teacher.update({
+      where: { id: teacherId },
+      data: {
+        department,
+        qualification,
+        profile: {
+          update: {
+            fullName
+          }
+        }
+      },
+      include: {
+        profile: true
+      }
+    });
+
+    return res.json(teacher);
+  } catch (error) {
+    console.error('Update teacher profile error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 export const getAssignments = async (req: AuthRequest, res: Response) => {
   try {
     const assignments = await prisma.subjectAssignment.findMany({
@@ -150,17 +178,21 @@ export const getAttendance = async (req: AuthRequest, res: Response) => {
 export const enterMarks = async (req: AuthRequest, res: Response) => {
   try {
     const marksData = req.body; // Expecting an array
+    const { examType } = req.query; // Get exam type from query
 
     if (!Array.isArray(marksData)) {
       return res.status(400).json({ error: 'Marks data must be an array' });
     }
 
+    const type = (examType as string) || 'Terminal';
+
     const promises = marksData.map((record: any) => {
       return prisma.mark.upsert({
         where: {
-          studentId_subjectId: {
+          studentId_subjectId_examType: {
             studentId: record.studentId,
             subjectId: parseInt(record.subjectId),
+            examType: type,
           },
         },
         update: {
@@ -172,6 +204,7 @@ export const enterMarks = async (req: AuthRequest, res: Response) => {
         create: {
           studentId: record.studentId,
           subjectId: parseInt(record.subjectId),
+          examType: type,
           internalMarks: parseFloat(record.internalMarks) || 0,
           practicalMarks: parseFloat(record.practicalMarks) || 0,
           finalMarks: parseFloat(record.finalMarks) || 0,
@@ -190,15 +223,21 @@ export const enterMarks = async (req: AuthRequest, res: Response) => {
 
 export const getMarks = async (req: AuthRequest, res: Response) => {
   try {
-    const { subjectId } = req.query;
+    const { subjectId, examType } = req.query;
     if (!subjectId) {
       return res.status(400).json({ error: 'Subject ID is required' });
     }
 
+    const where: any = {
+      subjectId: parseInt(subjectId as string),
+    };
+
+    if (examType) {
+        where.examType = examType as string;
+    }
+
     const marks = await prisma.mark.findMany({
-      where: {
-        subjectId: parseInt(subjectId as string),
-      },
+      where,
     });
 
     return res.json(marks);

@@ -1,0 +1,4 @@
+fullname,email,employeeid,department,qualification,programcode
+"Dr. Sarah Connor","sarah@teacher.com","T101","Computer Science","PhD in AI","BCA"
+"James Bond","james@teacher.com","T102","Mathematics","MSc in Math","CSIT"
+"Elena Fisher","elena@teacher.com","T103","Physics","MSc in Physics",""

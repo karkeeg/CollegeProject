@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
-import { Plus, Search, Trash2, Edit } from 'lucide-react';
-import Modal from '../../components/Modal';
+import { Plus, Search, Trash2, Edit, Paperclip, Download } from 'lucide-react';
+import FileUploader from '../../components/ui/FileUploader';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useModal } from '../../hooks/useModal';
 
 interface Notice {
   id: number;
@@ -11,6 +12,7 @@ interface Notice {
   content: string;
   priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
   targetRole: 'ADMIN' | 'TEACHER' | 'STUDENT' | null;
+  attachmentUrl: string | null;
   createdAt: string;
   createdBy: {
     fullName: string;
@@ -19,12 +21,11 @@ interface Notice {
 }
 
 export default function NoticeList() {
+  const { openModal, closeModal } = useModal();
+  
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
-  const [noticeToDelete, setNoticeToDelete] = useState<Notice | null>(null);
 
   useEffect(() => {
     fetchNotices();
@@ -43,28 +44,58 @@ export default function NoticeList() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!noticeToDelete) return;
-
+  const handleDelete = async (noticeId: number) => {
     try {
-      await api.delete(`/admin/notices/${noticeToDelete.id}`);
-      setNotices(prev => prev.filter(n => n.id !== noticeToDelete.id));
+      await api.delete(`/admin/notices/${noticeId}`);
+      setNotices(prev => prev.filter(n => n.id !== noticeId));
       toast.success("Notice deleted successfully");
+      closeModal();
     } catch (err: any) {
       toast.error("Failed to delete notice: " + (err.response?.data?.error || err.message));
-    } finally {
-      setNoticeToDelete(null);
     }
   };
 
+  const handleConfirmDelete = (notice: Notice) => {
+    openModal(
+      <div className="p-4">
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to delete <strong>{notice.title}</strong>? This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button onClick={closeModal} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition font-medium">Cancel</button>
+          <button onClick={() => handleDelete(notice.id)} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg shadow-red-200">Delete Permanently</button>
+        </div>
+      </div>,
+      { title: "Delete Notice", size: "sm" }
+    );
+  };
+
   const handleEdit = (notice: Notice) => {
-    setEditingNotice(notice);
-    setIsFormOpen(true);
+    openModal(
+      <NoticeForm
+        initialData={notice}
+        onCheckCompletion={() => {
+          closeModal();
+          fetchNotices();
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Edit Notice", size: "2xl" }
+    );
   };
 
   const handleAdd = () => {
-    setEditingNotice(null);
-    setIsFormOpen(true);
+    openModal(
+      <NoticeForm
+        initialData={null}
+        onCheckCompletion={() => {
+          closeModal();
+          fetchNotices();
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Add New Notice", size: "2xl" }
+    );
   };
 
   const filteredNotices = notices.filter(notice =>
@@ -139,7 +170,22 @@ export default function NoticeList() {
               ) : (
                 filteredNotices.map((notice) => (
                   <tr key={notice.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 font-medium text-gray-900">{notice.title}</td>
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">{notice.title}</div>
+                      {notice.attachmentUrl && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Paperclip size={12} className="text-gray-400" />
+                          <a 
+                            href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${notice.attachmentUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-indigo-600 hover:underline font-medium"
+                          >
+                            View Attachment
+                          </a>
+                        </div>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 border rounded text-[10px] font-bold uppercase ${getPriorityColor(notice.priority)}`}>
                         {notice.priority}
@@ -154,10 +200,20 @@ export default function NoticeList() {
                     <td className="px-6 py-4 text-gray-500">{new Date(notice.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
+                        {notice.attachmentUrl && (
+                          <a 
+                            href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${notice.attachmentUrl}`}
+                            download
+                            className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition"
+                            title="Download Attachment"
+                          >
+                            <Download size={18} />
+                          </a>
+                        )}
                         <button onClick={() => handleEdit(notice)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
                           <Edit size={18} />
                         </button>
-                        <button onClick={() => setNoticeToDelete(notice)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
+                        <button onClick={() => handleConfirmDelete(notice)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -170,36 +226,6 @@ export default function NoticeList() {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      <Modal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        title={editingNotice ? "Edit Notice" : "Add New Notice"}
-      >
-        <NoticeForm
-          initialData={editingNotice}
-          onCheckCompletion={() => {
-            setIsFormOpen(false);
-            fetchNotices();
-          }}
-          onCancel={() => setIsFormOpen(false)}
-        />
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      {noticeToDelete && (
-        <Modal isOpen={!!noticeToDelete} onClose={() => setNoticeToDelete(null)} title="Delete Notice">
-          <div className="p-4">
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete <strong>{noticeToDelete.title}</strong>? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setNoticeToDelete(null)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition font-medium">Cancel</button>
-              <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg shadow-red-200">Delete Permanently</button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }
@@ -216,6 +242,7 @@ function NoticeForm({ initialData, onCheckCompletion, onCancel }: {
     priority: initialData?.priority || 'NORMAL',
     targetRole: initialData?.targetRole || ''
   });
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -227,16 +254,26 @@ function NoticeForm({ initialData, onCheckCompletion, onCancel }: {
     setLoading(true);
 
     try {
-      const payload = {
-        ...formData,
-        targetRole: formData.targetRole || null
+      const data = new FormData();
+      data.append('title', formData.title);
+      data.append('content', formData.content);
+      data.append('priority', formData.priority);
+      data.append('targetRole', formData.targetRole || '');
+      if (attachment) {
+        data.append('attachment', attachment);
+      }
+
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       };
 
       if (initialData) {
-        await api.put(`/admin/notices/${initialData.id}`, payload);
+        await api.put(`/admin/notices/${initialData.id}`, data, config);
         toast.success("Notice updated successfully");
       } else {
-        await api.post('/admin/notices', payload);
+        await api.post('/admin/notices', data, config);
         toast.success("Notice created successfully");
       }
       onCheckCompletion();
@@ -301,6 +338,8 @@ function NoticeForm({ initialData, onCheckCompletion, onCancel }: {
           <option value="STUDENT">Students Only</option>
         </select>
       </div>
+
+      <FileUploader onFileSelect={setAttachment} label="Attachment (Optional)" />
 
       <div className="flex justify-end gap-3 pt-4">
         <button

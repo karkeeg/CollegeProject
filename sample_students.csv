@@ -1,0 +1,4 @@
+fullname,email,studentcode,semestername,programcode,rollno,regno,phone,address,dob
+"Alice Johnson","alice@student.com","S101","1st Semester","BCA",1,"REG001","9800000001","Kathmandu","2000-01-01"
+"Bob Smith","bob@student.com","S102","1st Semester","BCA",2,"REG002","9800000002","Lalitpur","2001-02-02"
+"Charlie Brown","charlie@student.com","S103","2nd Semester","CSIT",1,"REG003","9800000003","Bhaktapur","2002-03-03"

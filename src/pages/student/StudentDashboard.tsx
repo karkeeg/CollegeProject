@@ -197,7 +197,7 @@ export default function StudentDashboard() {
             </div>
             <div className="space-y-3">
                 {subjects.slice(0, 5).map((subject) => (
-                    <div key={subject.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                    <Link to={`/student/subject/${subject.id}`} key={subject.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between hover:bg-gray-50 transition block">
                         <div>
                             <p className="font-bold text-gray-900 text-sm">{subject.name}</p>
                             <p className="text-[10px] font-mono text-gray-400 uppercase">{subject.code}</p>
@@ -205,7 +205,7 @@ export default function StudentDashboard() {
                         <div className="text-[10px] font-bold bg-gray-50 text-gray-400 px-2 py-1 rounded">
                             {subject.creditHours} CH
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>
@@ -217,7 +217,7 @@ export default function StudentDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {subjects.map((subject) => (
-          <div key={subject.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:border-indigo-500 transition-all">
+          <Link to={`/student/subject/${subject.id}`} key={subject.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:border-indigo-500 transition-all block">
              <div className="flex justify-between items-start mb-4">
                 <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">
                   {subject.code}
@@ -229,7 +229,7 @@ export default function StudentDashboard() {
              <h3 className="text-lg font-bold text-gray-900 leading-tight">
                 {subject.name}
              </h3>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

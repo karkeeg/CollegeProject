@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
-import toast from 'react-hot-toast';
+
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { GraduationCap, Briefcase, UserCircle } from 'lucide-react';
+import { UserCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 
 export default function Login() {
@@ -54,75 +54,76 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white border border-gray-200 p-8 rounded-2xl shadow-sm">
-          <div className="flex justify-center mb-8">
-            <div className="bg-blue-50 p-4 rounded-xl">
-              <UserCircle className="w-12 h-12 text-blue-600" />
+      <div className="w-full max-w-sm">
+        <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+          <div className="flex justify-center mb-4">
+            <div className="bg-blue-50 p-3 rounded-xl">
+              <UserCircle className="w-10 h-10 text-blue-600" />
             </div>
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Welcome Back</h1>
-          <p className="text-gray-500 text-center mb-8 font-medium">Please sign in to your account</p>
+          <h1 className="text-2xl font-bold text-gray-900 text-center mb-1">Welcome Back</h1>
+          <p className="text-gray-500 text-center mb-6 text-base font-medium">Please sign in to your account</p>
           
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-5">
             {/* Role Selection */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <button
-                type="button"
-                onClick={() => setSelectedRole('student')}
-                className={clsx(
-                  "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group",
-                  selectedRole === 'student' 
-                    ? "bg-blue-50 border-blue-600 text-blue-700" 
-                    : "bg-white border-gray-100 text-gray-400 hover:border-gray-200"
-                )}
-              >
-                <GraduationCap className={clsx(
-                  "w-8 h-8 mb-2",
-                  selectedRole === 'student' ? "text-blue-600" : "text-gray-300"
-                )} />
-                <span className="text-sm font-bold uppercase tracking-wider">Student</span>
-              </button>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-xs font-bold uppercase tracking-widest mb-2 px-1">I am a</label>
+              <div className="flex gap-3 p-1 bg-gray-100/50 rounded-lg border border-gray-200/50">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('student')}
+                  className={clsx(
+                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all duration-200",
+                    selectedRole === 'student' 
+                      ? "bg-white text-blue-600 shadow-sm border border-gray-100" 
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+                  )}
+                >
+                  <div className={clsx("w-3.5 h-3.5 rounded-full border flex items-center justify-center", selectedRole === 'student' ? "border-blue-600 bg-blue-600" : "border-gray-400")}>
+                     {selectedRole === 'student' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                  </div>
+                  Student
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setSelectedRole('teacher')}
-                className={clsx(
-                  "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group",
-                  selectedRole === 'teacher' 
-                    ? "bg-blue-50 border-blue-600 text-blue-700" 
-                    : "bg-white border-gray-100 text-gray-400 hover:border-gray-200"
-                )}
-              >
-                <Briefcase className={clsx(
-                  "w-8 h-8 mb-2",
-                  selectedRole === 'teacher' ? "text-blue-600" : "text-gray-300"
-                )} />
-                <span className="text-sm font-bold uppercase tracking-wider">Teacher</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('teacher')}
+                  className={clsx(
+                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all duration-200",
+                    selectedRole === 'teacher' 
+                      ? "bg-white text-blue-600 shadow-sm border border-gray-100" 
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+                  )}
+                >
+                   <div className={clsx("w-3.5 h-3.5 rounded-full border flex items-center justify-center", selectedRole === 'teacher' ? "border-blue-600 bg-blue-600" : "border-gray-400")}>
+                     {selectedRole === 'teacher' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                  </div>
+                  Teacher
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-700 text-xs font-bold uppercase tracking-widest mb-2 px-1">Email Address</label>
+                <label className="block text-gray-700 text-xs font-bold uppercase tracking-widest mb-1.5 px-1">Email Address</label>
                 <input 
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
               <div>
-                <label className="block text-gray-700 text-xs font-bold uppercase tracking-widest mb-2 px-1">Password</label>
+                <label className="block text-gray-700 text-xs font-bold uppercase tracking-widest mb-1.5 px-1">Password</label>
                 <input 
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -132,29 +133,24 @@ export default function Login() {
               type="submit" 
               disabled={isSubmitting}
               className={clsx(
-                "w-full py-4 rounded-xl text-white font-bold uppercase tracking-widest transition-all duration-200 flex justify-center items-center shadow-md",
+                "w-full py-3.5 rounded-lg text-base text-white font-bold uppercase tracking-widest transition-all duration-200 flex justify-center items-center shadow-md mt-2",
                 "bg-blue-600 hover:bg-blue-700",
                 isSubmitting && "opacity-50 cursor-not-allowed"
               )}
             >
               {isSubmitting ? (
-                <LoadingSpinner size={24} className="text-white" />
+                <LoadingSpinner size={20} className="text-white" />
               ) : (
                 'Sign In'
               )}
             </button>
           </form>
           
-          <div className="mt-8 pt-8 border-t border-gray-100 flex flex-col items-center gap-4">
-            <Link to="/" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 transition">
+          <div className="mt-6 pt-6 border-t border-gray-100 flex flex-col items-center gap-3">
+            <Link to="/" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition">
               <ArrowLeft size={16} />
               Back to Website
             </Link>
-            <p className="text-center text-[10px] text-gray-400 font-medium leading-relaxed">
-              Demo: Sign in with credentials provided by Admin.
-              <br />
-              Admin can login by selecting either role.
-            </p>
           </div>
         </div>
       </div>

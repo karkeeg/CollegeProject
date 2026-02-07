@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { Upload,  AlertCircle, CheckCircle2, ChevronRight } from 'lucide-react';
 import api from '../../lib/api';
-import Modal from '../Modal';
 import toast from 'react-hot-toast';
 
 interface BulkUploadModalProps {
-  isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   type: 'students' | 'teachers';
 }
 
-export default function BulkUploadModal({ isOpen, onClose, onSuccess, type }: BulkUploadModalProps) {
+export default function BulkUploadModal({ onClose, onSuccess, type }: BulkUploadModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [validation, setValidation] = useState<{ isValid: boolean; message: string } | null>(null);
@@ -120,12 +118,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess, type }: Bu
     : 'FullName, Email, EmployeeId, Department, Qualification, ProgramCode';
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Bulk Import ${type === 'students' ? 'Students' : 'Teachers'}`}
-    >
-      <div className="space-y-4">
+    <div className="space-y-4">
         {!results ? (
           <>
             <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-lg text-[11px] text-blue-800 leading-relaxed">
@@ -220,8 +213,6 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess, type }: Bu
             </button>
           </div>
         )}
-      </div>
-    </Modal>
+    </div>
   );
 }
-

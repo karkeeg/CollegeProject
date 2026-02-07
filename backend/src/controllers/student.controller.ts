@@ -23,6 +23,36 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const { fullName, phone, address, dob } = req.body;
+    const studentId = req.user!.id;
+
+    const student = await prisma.student.update({
+      where: { id: studentId },
+      data: {
+        phone,
+        address,
+        dob: dob ? new Date(dob) : undefined,
+        profile: {
+          update: {
+            fullName
+          }
+        }
+      },
+      include: {
+        profile: true,
+        semester: true
+      }
+    });
+
+    return res.json(student);
+  } catch (error) {
+    console.error('Update student profile error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 export const getSubjects = async (req: AuthRequest, res: Response) => {
   try {
     const subjects = await prisma.subject.findMany({
@@ -137,6 +167,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       where: {
         studentId: req.user!.id,
         subjectId: { in: subjectIds },
+        examType: 'Terminal' // Default for stats/GPA
       },
       include: {
         subject: true,

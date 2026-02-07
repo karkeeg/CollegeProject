@@ -29,7 +29,8 @@ export async function createAssignment(req: AuthRequest, res: Response): Promise
         title,
         description,
         dueDate: new Date(dueDate),
-        maxMarks: parseInt(maxMarks) || 100
+        maxMarks: parseInt(maxMarks) || 100,
+        attachmentUrl: req.file ? `/uploads/assignments/${req.file.filename}` : null
       },
       include: {
         subject: true
@@ -140,6 +141,8 @@ export async function submitAssignment(req: AuthRequest, res: Response): Promise
     const { content } = req.body;
     const studentId = req.user!.id;
 
+    const attachmentUrl = req.file ? `/uploads/submissions/${req.file.filename}` : undefined;
+
     const submission = await prisma.submission.upsert({
       where: {
         assignmentId_studentId: {
@@ -149,12 +152,14 @@ export async function submitAssignment(req: AuthRequest, res: Response): Promise
       },
       update: {
         content,
-        submittedAt: new Date()
+        submittedAt: new Date(),
+        ...(attachmentUrl && { attachmentUrl })
       },
       create: {
         assignmentId: parseInt(id as string),
         studentId,
-        content
+        content,
+        attachmentUrl: attachmentUrl || null
       }
     });
 
@@ -242,13 +247,16 @@ export async function updateAssignment(req: AuthRequest, res: Response): Promise
       return;
     }
 
+    const attachmentUrl = req.file ? `/uploads/assignments/${req.file.filename}` : undefined;
+
     const assignment = await prisma.assignment.update({
       where: { id: parseInt(id as string) },
       data: {
         title,
         description,
         dueDate: new Date(dueDate),
-        maxMarks: parseInt(maxMarks)
+        maxMarks: parseInt(maxMarks),
+        ...(attachmentUrl && { attachmentUrl })
       }
     });
 

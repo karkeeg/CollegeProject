@@ -8,6 +8,7 @@ import {
 } from '../../controllers/notice.controller';
 import { authenticate } from '../../middleware/auth';
 import { requireRole } from '../../middleware/roleGuard';
+import { upload } from '../../middleware/upload.middleware';
 
 const router = Router();
 

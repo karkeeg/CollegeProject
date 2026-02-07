@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './components/AuthProvider';
+import { ModalProvider } from './components/providers/ModalProvider';
 import Login from './pages/auth/Login';
 import DashboardLayout from './layouts/DashboardLayout';
 import RequireRole from './components/RequireRole';
@@ -28,6 +29,7 @@ import StudentResults from './pages/student/StudentResults';
 import NoticeBoard from './pages/student/NoticeBoard';
 import ClassRoutine from './pages/student/ClassRoutine';
 import StudentAssignments from './pages/student/StudentAssignments';
+import StudentSubjectDetails from './pages/student/SubjectDetails';
 import Profile from './pages/common/Profile';
 // Public Pages
 import LandingPage from './pages/public/LandingPage';
@@ -38,6 +40,7 @@ import { Toaster } from 'react-hot-toast';
 function App() {
   return (
     <AuthProvider>
+      <ModalProvider>
       <Router>
         <Toaster position="top-center" reverseOrder={false} />
         <Routes>
@@ -76,15 +79,14 @@ function App() {
               <Route path="/student/routine" element={<ClassRoutine />} />
               <Route path="/student/assignments" element={<StudentAssignments />} />
               <Route path="/student/attendance" element={<StudentAttendance />} />
+              <Route path="/student/subject/:subjectId" element={<StudentSubjectDetails />} />
               <Route path="/student/results" element={<StudentResults />} />
               <Route path="/student/profile" element={<Profile />} />
             </Route>
-              <Route path="/student/results" element={<StudentResults />} />
-              <Route path="/student/profile" element={<Profile />} />
-            </Route>
-          
+          </Route>
         </Routes>
       </Router>
+      </ModalProvider>
     </AuthProvider>
   );
 }

@@ -47,6 +47,7 @@ model Student {
   projects          InternshipProject[]
   submissions       Submission[]
   enrolledClasses   StudentClass[]
+  quizAttempts      QuizAttempt[]
   
   @@map("students")
 }
@@ -63,6 +64,8 @@ model Teacher {
   assignments       SubjectAssignment[]
   courseAssignments CourseAssignment[]
   teacherAssignments Assignment[]
+  quizzes           Quiz[]
+  classMaterials    ClassMaterial[]
   
   @@map("teachers")
 }
@@ -113,6 +116,8 @@ model Subject {
   routines          Routine[]
   subjectAssignments Assignment[]
   enrolledStudents  StudentClass[]
+  quizzes           Quiz[]
+  classMaterials    ClassMaterial[]
   
   @@map("subjects")
 }
@@ -167,6 +172,7 @@ model Mark {
   id             Int     @id @default(autoincrement())
   studentId      String  @db.Uuid @map("student_id")
   subjectId      Int     @map("subject_id")
+  examType       String  @default("Terminal") @map("exam_type")
   internalMarks  Float   @default(0) @map("internal_marks")
   practicalMarks Float   @default(0) @map("practical_marks")
   finalMarks     Float   @default(0) @map("final_marks")
@@ -176,7 +182,7 @@ model Mark {
   student        Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   subject        Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   
-  @@unique([studentId, subjectId])
+  @@unique([studentId, subjectId, examType])
   @@map("marks")
 }
 
@@ -247,15 +253,16 @@ enum ProjectStatus {
 }
 
 model Notice {
-  id          Int            @id @default(autoincrement())
-  title       String
-  content     String
-  priority    NoticePriority @default(NORMAL)
-  targetRole  Role?
-  createdById String         @db.Uuid @map("created_by_id")
-  createdAt   DateTime       @default(now()) @map("created_at")
+  id            Int            @id @default(autoincrement())
+  title         String
+  content       String
+  priority      NoticePriority @default(NORMAL)
+  targetRole    Role?
+  attachmentUrl String?        @map("attachment_url")
+  createdById   String         @db.Uuid @map("created_by_id")
+  createdAt     DateTime       @default(now()) @map("created_at")
   
-  createdBy   Profile        @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy     Profile        @relation(fields: [createdById], references: [id], onDelete: Cascade)
   
   @@map("notices")
 }
@@ -283,18 +290,19 @@ model Routine {
 }
 
 model Assignment {
-  id          Int          @id @default(autoincrement())
-  subjectId   Int          @map("subject_id")
-  teacherId   String       @db.Uuid @map("teacher_id")
-  title       String
-  description String?
-  dueDate     DateTime     @map("due_date")
-  maxMarks    Int          @default(100) @map("max_marks")
-  createdAt   DateTime     @default(now()) @map("created_at")
+  id            Int          @id @default(autoincrement())
+  subjectId     Int          @map("subject_id")
+  teacherId     String       @db.Uuid @map("teacher_id")
+  title         String
+  description   String?
+  dueDate       DateTime     @map("due_date")
+  maxMarks      Int          @default(100) @map("max_marks")
+  attachmentUrl String?      @map("attachment_url")
+  createdAt     DateTime     @default(now()) @map("created_at")
   
-  subject     Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  teacher     Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  submissions Submission[]
+  subject       Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher       Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  submissions   Submission[]
   
   @@map("assignments")
 }
@@ -304,6 +312,7 @@ model Submission {
   assignmentId  Int        @map("assignment_id")
   studentId     String     @db.Uuid @map("student_id")
   content       String
+  attachmentUrl String?    @map("attachment_url")
   submittedAt   DateTime   @default(now()) @map("submitted_at")
   marksObtained Float?     @map("marks_obtained")
   feedback      String?
@@ -314,4 +323,51 @@ model Submission {
   
   @@unique([assignmentId, studentId])
   @@map("submissions")
+}
+
+model Quiz {
+  id          Int           @id @default(autoincrement())
+  subjectId   Int           @map("subject_id")
+  teacherId   String        @db.Uuid @map("teacher_id")
+  title       String
+  description String?
+  questions   Json          // Array of objects: { question, type, options, answer }
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  subject     Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher     Teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  attempts    QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model QuizAttempt {
+  id          Int      @id @default(autoincrement())
+  quizId      Int      @map("quiz_id")
+  studentId   String   @db.Uuid @map("student_id")
+  answers     Json     // Object: { questionIndex: answer }
+  score       Float
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+model ClassMaterial {
+  id          Int      @id @default(autoincrement())
+  subjectId   Int      @map("subject_id")
+  teacherId   String   @db.Uuid @map("teacher_id")
+  title       String
+  description String?
+  fileUrl     String   @map("file_url")
+  fileType    String   @map("file_type")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher     Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@map("class_materials")
 }

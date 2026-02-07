@@ -1,6 +1,43 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../types';
 import prisma from '../config/database';
 import { hashPassword } from '../services/auth.service';
+
+export const getProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { id: req.user!.id },
+    });
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    return res.json({ profile }); // Wrap in object to match frontend expectation in Profile.tsx
+  } catch (error) {
+    console.error('Get admin profile error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const { fullName } = req.body;
+    const adminId = req.user!.id;
+
+    const profile = await prisma.profile.update({
+      where: { id: adminId },
+      data: {
+        fullName,
+      },
+    });
+
+    return res.json({ profile });
+  } catch (error) {
+    console.error('Update admin profile error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 // Students CRUD
 export const getAllStudents = async (req: Request, res: Response) => {

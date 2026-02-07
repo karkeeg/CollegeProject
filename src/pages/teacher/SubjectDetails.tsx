@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import api from '../../lib/api';
-import { ArrowLeft, UserCheck, FileText, Users, Save, Plus, X, Search, CheckSquare, Square, Calendar, Clock, Trash2, Edit } from 'lucide-react'; 
+import { ArrowLeft, UserCheck, FileText, Users, Save, Plus, X, Search, CheckSquare, Square, Calendar, Clock, Trash2, Edit, Folder, Brain } from 'lucide-react'; 
 import clsx from 'clsx';
 import toast from 'react-hot-toast'; 
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import MaterialsList from '../../components/MaterialsList';
+import QuizView from '../../components/teacher/QuizView';
  
 
 // Sub-components
@@ -72,8 +74,8 @@ const EnrollmentModal = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
                 <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-teal-700 text-white">
                     <div>
                         <h3 className="font-bold text-lg">Manage Enrollment</h3>
@@ -223,7 +225,7 @@ const StudentListView = ({ subjectId }: { subjectId: number }) => {
 
   return (
     <>
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
          <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <h3 className="font-bold text-gray-700">Enrolled Students ({students.length})</h3>
             <button 
@@ -333,7 +335,7 @@ const AttendanceView = ({ semesterId, subjectId }: { semesterId: number, subject
   if (loading && students.length === 0) return <div className="p-12 flex justify-center"><LoadingSpinner /></div>;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
         <div className="flex items-center gap-3">
            <label className="font-bold text-gray-700 text-sm">Attendance Date:</label>
@@ -410,10 +412,11 @@ const MarksView = ({ semesterId, subjectId }: { semesterId: number, subjectId: n
   const [students, setStudents] = useState<any[]>([]);
   const [marksData, setMarksData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [examType, setExamType] = useState('Terminal');
 
   useEffect(() => {
     fetchStudentsAndMarks();
-  }, [semesterId]);
+  }, [semesterId, examType]);
 
   async function fetchStudentsAndMarks() {
     setLoading(true);
@@ -422,7 +425,7 @@ const MarksView = ({ semesterId, subjectId }: { semesterId: number, subjectId: n
       setStudents(studentRes.data);
 
       const marksRes = await api.get(`/teacher/marks`, {
-        params: { subjectId }
+        params: { subjectId, examType }
       });
       
       const marksMap: Record<string, any> = {};
@@ -498,7 +501,7 @@ const MarksView = ({ semesterId, subjectId }: { semesterId: number, subjectId: n
     });
 
     try {
-      await api.post('/teacher/marks', upsertData);
+      await api.post(`/teacher/marks?examType=${examType}`, upsertData);
       toast.success("Marks saved successfully!");
       fetchStudentsAndMarks(); 
     } catch (error) {
@@ -512,18 +515,38 @@ const MarksView = ({ semesterId, subjectId }: { semesterId: number, subjectId: n
   if (loading && students.length === 0) return <div className="p-12 flex justify-center"><LoadingSpinner /></div>;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="flex justify-between items-center mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+          <h3 className="font-bold text-gray-700 flex items-center gap-2">
+              <FileText size={18} />
+              Marks Sheet
+          </h3>
+          <div className="flex items-center gap-3">
+              <label className="text-sm font-bold text-gray-500 uppercase tracking-wider">Exam Type:</label>
+              <select
+                 value={examType}
+                 onChange={(e) => setExamType(e.target.value)}
+                 className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold shadow-sm"
+              >
+                  <option value="Terminal">Terminal Exam</option>
+                  <option value="Board">Board Exam</option>
+                  <option value="UnitTest">Unit Test</option>
+                  <option value="Assessment">Internal Assessment</option>
+              </select>
+          </div>
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-gray-200 mb-6 transition-all">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50 text-gray-600 font-bold uppercase tracking-wider text-[10px]">
             <tr>
               <th className="px-6 py-4">Roll No</th>
               <th className="px-6 py-4">Student Name</th>
-              <th className="px-6 py-4 w-24">Internal</th>
-              <th className="px-6 py-4 w-24">Practical</th>
-              <th className="px-6 py-4 w-24">Final</th>
-              <th className="px-6 py-4 w-20">Total</th>
-              <th className="px-6 py-4 w-20">Grade</th>
+              <th className="px-6 py-4 w-24 text-center">Internal</th>
+              <th className="px-6 py-4 w-24 text-center">Practical</th>
+              <th className="px-6 py-4 w-24 text-center">Final</th>
+              <th className="px-6 py-4 w-20 text-center">Total</th>
+              <th className="px-6 py-4 w-20 text-center">Grade</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -535,43 +558,43 @@ const MarksView = ({ semesterId, subjectId }: { semesterId: number, subjectId: n
                  <tr key={student.id} className="hover:bg-gray-50 transition-colors">
                    <td className="px-6 py-4 text-gray-500 font-mono text-xs">{student.rollNo}</td>
                    <td className="px-6 py-4 font-bold text-gray-900">{student.profile?.fullName}</td>
-                   <td className="px-6 py-4">
+                   <td className="px-6 py-4 text-center">
                       <input 
                          type="number" 
                          min="0" max="100"
-                         className="w-16 px-2 py-1 bg-gray-50 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-xs font-bold"
+                         className="w-16 px-2 py-1 bg-gray-50 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-xs font-bold text-center"
                          value={m.internal || ''}
                          onChange={(e) => handleMarkChange(student.id, 'internal', e.target.value)}
                          placeholder="0"
                       />
                    </td>
-                   <td className="px-6 py-4">
+                   <td className="px-6 py-4 text-center">
                       <input 
                          type="number" 
                          min="0" max="100"
-                         className="w-16 px-2 py-1 bg-gray-50 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-xs font-bold"
+                         className="w-16 px-2 py-1 bg-gray-50 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-xs font-bold text-center"
                          value={m.practical || ''}
                          onChange={(e) => handleMarkChange(student.id, 'practical', e.target.value)}
                          placeholder="0"
                       />
                    </td>
-                   <td className="px-6 py-4">
+                   <td className="px-6 py-4 text-center">
                       <input 
                          type="number" 
                          min="0" max="100"
-                         className="w-16 px-2 py-1 bg-gray-50 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-xs font-bold"
+                         className="w-16 px-2 py-1 bg-gray-50 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-xs font-bold text-center"
                          value={m.final || ''}
                          onChange={(e) => handleMarkChange(student.id, 'final', e.target.value)}
                          placeholder="0"
                       />
                    </td>
-                   <td className="px-6 py-4 font-bold text-gray-700">
+                   <td className="px-6 py-4 font-bold text-gray-700 text-center">
                       {total}
                    </td>
-                   <td className="px-6 py-4">
+                   <td className="px-6 py-4 text-center">
                       <span className={clsx(
                         "px-2 py-1 rounded-lg text-[10px] font-bold w-10 inline-block text-center",
-                        grade !== 'F' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        grade !== 'F' ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"
                       )}>
                         {grade}
                       </span>
@@ -586,7 +609,8 @@ const MarksView = ({ semesterId, subjectId }: { semesterId: number, subjectId: n
         </table>
       </div>
       
-      <div className="flex justify-end pt-4 border-t border-gray-100">
+      <div className="flex justify-between pt-4 border-t border-gray-100 items-center">
+         <p className="text-xs text-gray-400 italic">* Changes are saved for the selected Exam Type only.</p>
          <button 
            onClick={saveMarks}
            disabled={loading}
@@ -652,7 +676,7 @@ const ScheduleView = ({ subjectId, semesterId }: { subjectId: number, semesterId
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-bold text-gray-900">Class Schedule (Sun-Fri)</h2>
                 <button 
@@ -723,8 +747,8 @@ const RoutineModal = ({ initialData, onClose, onSave }: { initialData: any, onCl
     });
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
                 <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-indigo-700 text-white">
                     <h3 className="font-bold text-lg">{initialData ? 'Edit Schedule' : 'Add Time Slot'}</h3>
                     <button onClick={onClose} className="text-white/70 hover:text-white"><X size={20} /></button>
@@ -883,6 +907,24 @@ export default function SubjectDetails() {
          >
             <Calendar size={18} /> Schedule
          </button>
+         <button 
+           onClick={() => setActiveTab('materials')}
+           className={clsx(
+               "pb-3 px-4 font-medium text-sm flex items-center gap-2 transition relative",
+               activeTab === 'materials' ? "text-indigo-600 border-b-2 border-indigo-600" : "text-gray-500 hover:text-gray-900"
+           )}
+         >
+            <Folder size={18} /> Class Materials
+         </button>
+         <button 
+           onClick={() => setActiveTab('quizzes')}
+           className={clsx(
+               "pb-3 px-4 font-medium text-sm flex items-center gap-2 transition relative",
+               activeTab === 'quizzes' ? "text-indigo-600 border-b-2 border-indigo-600" : "text-gray-500 hover:text-gray-900"
+           )}
+         >
+            <Brain size={18} /> Quizzes
+         </button>
       </div>
 
       <div>
@@ -890,6 +932,8 @@ export default function SubjectDetails() {
           {activeTab === 'attendance' && <AttendanceView semesterId={subject.semesterId} subjectId={subject.id} />}
           {activeTab === 'marks' && <MarksView semesterId={subject.semesterId} subjectId={subject.id} />}
           {activeTab === 'schedule' && <ScheduleView semesterId={subject.semesterId} subjectId={subject.id} />}
+          {activeTab === 'materials' && <MaterialsList subjectId={subject.id} userRole="TEACHER" />}
+          {activeTab === 'quizzes' && <QuizView subjectId={subject.id} />}
       </div>
     </div>
   );

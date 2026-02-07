@@ -54,15 +54,16 @@ export default function SubjectForm({ onCheckCompletion, onCancel, initialData }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleProgramChange = (id: string) => {
-    setFormData({ ...formData, programId: id, semesterId: '' });
+    setFormData(prev => ({ ...prev, programId: id, semesterId: '' }));
   };
 
   const handleSemesterChange = (id: string) => {
-    setFormData({ ...formData, semesterId: id });
+    setFormData(prev => ({ ...prev, semesterId: id }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

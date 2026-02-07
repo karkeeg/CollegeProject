@@ -7,6 +7,7 @@ export async function createNotice(req: AuthRequest, res: Response) {
   try {
     const { title, content, priority, targetRole } = req.body;
     const createdById = req.user!.id;
+    const attachmentUrl = req.file ? `/uploads/notices/${req.file.filename}` : null;
 
     const notice = await prisma.notice.create({
       data: {
@@ -14,6 +15,7 @@ export async function createNotice(req: AuthRequest, res: Response) {
         content,
         priority: priority || 'NORMAL',
         targetRole: targetRole || null,
+        attachmentUrl,
         createdById
       },
       include: {
@@ -94,6 +96,7 @@ export async function updateNotice(req: AuthRequest, res: Response) {
   try {
     const { id } = req.params;
     const { title, content, priority, targetRole } = req.body;
+    const attachmentUrl = req.file ? `/uploads/notices/${req.file.filename}` : undefined;
 
     const notice = await prisma.notice.update({
       where: { id: parseInt(id as string) },
@@ -101,7 +104,8 @@ export async function updateNotice(req: AuthRequest, res: Response) {
         title,
         content,
         priority,
-        targetRole: targetRole || null
+        targetRole: targetRole || null,
+        ...(attachmentUrl && { attachmentUrl })
       }
     });
 

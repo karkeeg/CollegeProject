@@ -55,26 +55,29 @@ export class CsvImportAlgorithm {
                 const program = await prisma.program.findUnique({
                     where: { code: row.programcode }
                 });
-                if (!program) throw new Error(`Program '${row.programcode}' not found`);
+                if (!program) throw new Error(`Program code "${row.programcode}" does not exist`);
 
                 const semester = await prisma.semester.findFirst({
                     where: { 
-                        programId: program.id,
-                        name: { equals: row.semestername, mode: 'insensitive' }
-                    }
-                });
-                if (!semester) throw new Error(`Semester '${row.semestername}' not found in ${program.code}`);
-
-                // 2. Check duplicates (Email & StudentCode)
-                const existing = await prisma.profile.findFirst({
-                    where: { 
+                        name: { equals: row.semestername, mode: 'insensitive' },
                         OR: [
-                           { email: row.email },
-                           { student: { studentCode: row.studentcode } }
+                            { programId: program.id },
+                            { programId: null }
                         ]
                     }
                 });
-                if (existing) throw new Error(`Conflict: ${row.studentcode} or ${row.email} already exists`);
+                if (!semester) throw new Error(`Semester "${row.semestername}" not found in the system`);
+
+                // 2. Check duplicates (Email & StudentCode)
+                const existingEmail = await prisma.profile.findUnique({
+                    where: { email: row.email }
+                });
+                if (existingEmail) throw new Error(`Email "${row.email}" already exists`);
+
+                const existingCode = await prisma.student.findUnique({
+                    where: { studentCode: row.studentcode }
+                });
+                if (existingCode) throw new Error(`Duplicate StudentCode detected: ${row.studentcode}`);
 
                 // 3. Create Profile + Student
                 await prisma.profile.create({
@@ -88,7 +91,7 @@ export class CsvImportAlgorithm {
                                 studentCode: row.studentcode,
                                 rollNo: row.rollno ? parseInt(row.rollno) : null,
                                 regNo: row.regno || null,
-                                semesterId: semester.id,
+                                currentSemesterId: semester.id,
                                 programId: program.id,
                                 phone: row.phone || null,
                                 address: row.address || null,
@@ -132,19 +135,20 @@ export class CsvImportAlgorithm {
                     const program = await prisma.program.findUnique({
                         where: { code: row.programcode }
                     });
-                    if (program) programId = program.id;
+                    if (!program) throw new Error(`Program code "${row.programcode}" does not exist`);
+                    programId = program.id;
                 }
 
                 // 2. Check duplicates (Email & EmployeeId)
-                const existing = await prisma.profile.findFirst({
-                    where: { 
-                        OR: [
-                           { email: row.email },
-                           { teacher: { employeeId: row.employeeid } }
-                        ]
-                    }
+                const existingEmail = await prisma.profile.findUnique({
+                    where: { email: row.email }
                 });
-                if (existing) throw new Error(`Conflict: ${row.employeeid} or ${row.email} already exists`);
+                if (existingEmail) throw new Error(`Email "${row.email}" already exists`);
+
+                const existingId = await prisma.teacher.findUnique({
+                    where: { employeeId: row.employeeid }
+                });
+                if (existingId) throw new Error(`Duplicate EmployeeId detected: ${row.employeeid}`);
 
                 // 3. Create Profile + Teacher
                 await prisma.profile.create({

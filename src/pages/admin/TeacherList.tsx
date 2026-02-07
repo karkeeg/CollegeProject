@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
 import { Plus, Search, Trash2, Edit, Upload } from 'lucide-react';
-import Modal from '../../components/Modal';
 import TeacherForm from './TeacherForm';
 import BulkUploadModal from '../../components/admin/BulkUploadModal';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useModal } from '../../hooks/useModal';
 
 interface Teacher {
   id: string;
@@ -27,18 +27,13 @@ interface Program {
 }
 
 export default function TeacherList() {
+  const { openModal, closeModal } = useModal();
+  
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProgram, setSelectedProgram] = useState<string>('');
-  
-  // Modals
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [showBulkModal, setShowBulkModal] = useState(false);
-  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
-  
-  const [teacherToDelete, setTeacherToDelete] = useState<Teacher | null>(null);
 
   useEffect(() => {
     fetchTeachers();
@@ -74,28 +69,69 @@ export default function TeacherList() {
     }
   }
 
-  const handleDelete = async () => {
-      if (!teacherToDelete) return;
+  const handleDelete = async (teacherId: string) => {
       try {
-          await api.delete(`/admin/teachers/${teacherToDelete.id}`);
+          await api.delete(`/admin/teachers/${teacherId}`);
           
-          setTeachers(prev => prev.filter(t => t.id !== teacherToDelete.id));
+          setTeachers(prev => prev.filter(t => t.id !== teacherId));
           toast.success("Teacher deleted successfully");
+          closeModal();
       } catch (err: any) {
           toast.error("Failed to delete teacher: " + (err.response?.data?.error || err.message));
-      } finally {
-          setTeacherToDelete(null);
       }
   };
 
+  const handleConfirmDelete = (teacher: Teacher) => {
+    openModal(
+      <div className="p-4">
+          <p className="text-slate-600 mb-6">
+              Are you sure you want to delete <strong>{teacher.fullName}</strong>? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+              <button onClick={closeModal} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button onClick={() => handleDelete(teacher.id)} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete Permanently</button>
+          </div>
+      </div>,
+      { title: "Delete Teacher", size: "sm" }
+    );
+  };
+
   const handleEdit = (teacher: Teacher) => {
-      setEditingTeacher(teacher);
-      setIsFormOpen(true);
+      openModal(
+        <TeacherForm 
+          initialData={teacher}
+          onCheckCompletion={() => {
+            closeModal();
+            setTimeout(fetchTeachers, 500); 
+          }}
+          onCancel={closeModal}
+        />,
+        { title: "Edit Teacher", size: "2xl" }
+      );
   };
 
   const handleAdd = () => {
-      setEditingTeacher(null);
-      setIsFormOpen(true);
+    openModal(
+      <TeacherForm 
+        onCheckCompletion={() => {
+          closeModal();
+          setTimeout(fetchTeachers, 500); 
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Add New Teacher", size: "2xl" }
+    );
+  };
+
+  const handleBulkImport = () => {
+    openModal(
+      <BulkUploadModal 
+        onClose={closeModal}
+        onSuccess={fetchTeachers}
+        type="teachers"
+      />,
+      { title: "Bulk Import Teachers", size: "lg" }
+    );
   };
 
   const filteredTeachers = teachers.filter(teacher => {
@@ -111,7 +147,7 @@ export default function TeacherList() {
         <h1 className="text-2xl font-bold text-gray-900">Teachers</h1>
         <div className="flex gap-2">
             <button 
-                onClick={() => setShowBulkModal(true)}
+                onClick={handleBulkImport}
                 className="bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-gray-50 transition font-bold"
             >
                 <Upload size={18} />
@@ -192,7 +228,7 @@ export default function TeacherList() {
                         <button onClick={() => handleEdit(teacher)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
                           <Edit size={18} />
                         </button>
-                        <button onClick={() => setTeacherToDelete(teacher)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
+                        <button onClick={() => handleConfirmDelete(teacher)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -205,44 +241,6 @@ export default function TeacherList() {
         </div>
       </div>
 
-      {/* Form Modal */}
-      <Modal 
-        isOpen={isFormOpen} 
-        onClose={() => setIsFormOpen(false)}
-        title={editingTeacher ? "Edit Teacher" : "Add New Teacher"}
-      >
-        <TeacherForm 
-          initialData={editingTeacher}
-          onCheckCompletion={() => {
-            setIsFormOpen(false);
-            setTimeout(fetchTeachers, 500); 
-          }}
-          onCancel={() => setIsFormOpen(false)}
-        />
-      </Modal>
-
-      {/* Delete Confirmation */}
-      {teacherToDelete && (
-         <Modal isOpen={!!teacherToDelete} onClose={() => setTeacherToDelete(null)} title="Delete Teacher">
-            <div className="p-4">
-                <p className="text-slate-600 mb-6">
-                    Are you sure you want to delete <strong>{teacherToDelete.fullName}</strong>? This action cannot be undone.
-                </p>
-                <div className="flex justify-end gap-3">
-                    <button onClick={() => setTeacherToDelete(null)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                    <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete Permanently</button>
-                </div>
-            </div>
-         </Modal>
-      )}
-
-      {/* Bulk Upload Modal */}
-      <BulkUploadModal 
-        isOpen={showBulkModal}
-        onClose={() => setShowBulkModal(false)}
-        onSuccess={fetchTeachers}
-        type="teachers"
-      />
     </div>
   );
 }

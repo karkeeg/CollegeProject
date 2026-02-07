@@ -64,7 +64,10 @@ export default function SemesterSelector({
     }, []);
 
     const filteredSemesters = semesters.filter(sem => 
-        !selectedProgramId || sem.programId === parseInt(selectedProgramId.toString())
+        !selectedProgramId || 
+        sem.programId === null || 
+        sem.programId === undefined ||
+        String(sem.programId) === String(selectedProgramId)
     );
 
     const containerClasses = clsx(
@@ -85,7 +88,7 @@ export default function SemesterSelector({
                         value={selectedProgramId}
                         onChange={(e) => {
                             onProgramChange(e.target.value);
-                            onSemesterChange(''); // Reset semester when program changes
+                            // REMOVED sequential call to onSemesterChange('') to prevent race conditions in parent state
                         }}
                         className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-medium text-sm"
                     >

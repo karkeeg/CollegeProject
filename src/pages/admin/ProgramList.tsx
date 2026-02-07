@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
 import { Plus, Search, Trash2, Edit } from 'lucide-react';
-import Modal from '../../components/Modal';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useModal } from '../../hooks/useModal';
 
 interface Program {
   id: number;
@@ -13,12 +13,11 @@ interface Program {
 }
 
 export default function ProgramList() {
+  const { openModal, closeModal } = useModal();
+  
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingProgram, setEditingProgram] = useState<Program | null>(null);
-  const [programToDelete, setProgramToDelete] = useState<Program | null>(null);
 
   useEffect(() => {
     fetchPrograms();
@@ -37,28 +36,58 @@ export default function ProgramList() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!programToDelete) return;
-
+  const handleDelete = async (programId: number) => {
     try {
-      await api.delete(`/admin/programs/${programToDelete.id}`);
-      setPrograms(prev => prev.filter(p => p.id !== programToDelete.id));
+      await api.delete(`/admin/programs/${programId}`);
+      setPrograms(prev => prev.filter(p => p.id !== programId));
       toast.success("Program deleted successfully");
+      closeModal();
     } catch (err: any) {
       toast.error("Failed to delete program: " + (err.response?.data?.error || err.message));
-    } finally {
-      setProgramToDelete(null);
     }
   };
 
+  const handleConfirmDelete = (program: Program) => {
+    openModal(
+      <div className="p-4">
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to delete the program <strong>{program.name}</strong>? This will affect all associated students and semesters.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button onClick={closeModal} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition font-medium">Cancel</button>
+          <button onClick={() => handleDelete(program.id)} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg shadow-red-200">Delete Permanently</button>
+        </div>
+      </div>,
+      { title: "Delete Program", size: "sm" }
+    );
+  };
+
   const handleEdit = (program: Program) => {
-    setEditingProgram(program);
-    setIsFormOpen(true);
+    openModal(
+      <ProgramForm
+        initialData={program}
+        onCheckCompletion={() => {
+          closeModal();
+          fetchPrograms();
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Edit Program", size: "lg" }
+    );
   };
 
   const handleAdd = () => {
-    setEditingProgram(null);
-    setIsFormOpen(true);
+    openModal(
+      <ProgramForm
+        initialData={null}
+        onCheckCompletion={() => {
+          closeModal();
+          fetchPrograms();
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Add New Program", size: "lg" }
+    );
   };
 
   const filteredPrograms = programs.filter(program =>
@@ -123,7 +152,7 @@ export default function ProgramList() {
                         <button onClick={() => handleEdit(program)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
                           <Edit size={18} />
                         </button>
-                        <button onClick={() => setProgramToDelete(program)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
+                        <button onClick={() => handleConfirmDelete(program)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -136,36 +165,6 @@ export default function ProgramList() {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      <Modal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        title={editingProgram ? "Edit Program" : "Add New Program"}
-      >
-        <ProgramForm
-          initialData={editingProgram}
-          onCheckCompletion={() => {
-            setIsFormOpen(false);
-            fetchPrograms();
-          }}
-          onCancel={() => setIsFormOpen(false)}
-        />
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      {programToDelete && (
-        <Modal isOpen={!!programToDelete} onClose={() => setProgramToDelete(null)} title="Delete Program">
-          <div className="p-4">
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete the program <strong>{programToDelete.name}</strong>? This will affect all associated students and semesters.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setProgramToDelete(null)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition font-medium">Cancel</button>
-              <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg shadow-red-200">Delete Permanently</button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }

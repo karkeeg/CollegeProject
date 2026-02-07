@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/roleGuard';
-import { getDashboardStats, getAllStudents, createStudent, updateStudent, deleteStudent, getAllTeachers, createTeacher, updateTeacher, deleteTeacher, getAllSubjects, createSubject, updateSubject, deleteSubject, getAllAssignments, createAssignment as createTeacherAssignment, deleteAssignment as deleteTeacherAssignment, importStudents, importTeachers } from '../controllers/admin.controller';
+import { getDashboardStats, getProfile, updateProfile, getAllStudents, createStudent, updateStudent, deleteStudent, getAllTeachers, createTeacher, updateTeacher, deleteTeacher, getAllSubjects, createSubject, updateSubject, deleteSubject, getAllAssignments, createAssignment as createTeacherAssignment, deleteAssignment as deleteTeacherAssignment, importStudents, importTeachers } from '../controllers/admin.controller';
 import noticeRoutes from './admin/notice.routes';
 import routineRoutes from './admin/routine.routes';
 import programRoutes from './admin/program.routes';
@@ -13,6 +13,8 @@ router.use(authenticate);
 router.use(requireRole('ADMIN'));
 
 router.get('/dashboard-stats', getDashboardStats);
+router.get('/profile', getProfile);
+router.put('/profile', updateProfile);
 
 // Student routes
 router.get('/students', getAllStudents);

@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/roleGuard';
-import { getProfile, getAssignments, getSubjectStudents, markAttendance, enterMarks, getStudentsBySemester, getAttendance, getMarks, createStudent, addStudentToClass, getAvailableStudents, enrollStudentsBulk } from '../controllers/teacher.controller';
+import { getProfile, updateProfile, getAssignments, getSubjectStudents, markAttendance, enterMarks, getStudentsBySemester, getAttendance, getMarks, createStudent, addStudentToClass, getAvailableStudents, enrollStudentsBulk } from '../controllers/teacher.controller';
 import { createAssignment, getTeacherAssignments, updateAssignment, deleteAssignment, getAssignmentSubmissions, gradeSubmission } from '../controllers/assignment.controller';
+import { getQuizzesBySubject, generateQuizDraft, saveQuiz, getQuizForTeacher, deleteQuiz } from '../controllers/quiz.controller';
 import { createRoutine, updateRoutine, deleteRoutine } from '../controllers/routine.controller';
+import { upload } from '../middleware/upload.middleware';
 
 const router = Router();
 
@@ -18,6 +20,7 @@ router.get('/subject/:subjectId/available-students', (req, res, next) => {
 }, getAvailableStudents);
 
 router.get('/profile', getProfile);
+router.put('/profile', updateProfile);
 router.get('/assignments', getAssignments);
 router.get('/subject/:subjectId/students', getSubjectStudents);
 router.post('/attendance', markAttendance);
@@ -31,12 +34,19 @@ router.get('/marks', getMarks);
 router.post('/students', createStudent);
 
 // Assignment routes
-router.post('/homework', createAssignment);
+router.post('/homework', upload.single('attachment'), createAssignment);
 router.get('/homework', getTeacherAssignments);
-router.put('/homework/:id', updateAssignment);
+router.put('/homework/:id', upload.single('attachment'), updateAssignment);
 router.delete('/homework/:id', deleteAssignment);
 router.get('/homework/:id/submissions', getAssignmentSubmissions);
 router.put('/submissions/:id/grade', gradeSubmission);
+
+// Quiz routes
+router.get('/subject/:subjectId/quizzes', getQuizzesBySubject);
+router.post('/quiz/generate', generateQuizDraft);
+router.post('/quiz/save', saveQuiz);
+router.get('/quiz/:id', getQuizForTeacher);
+router.delete('/quiz/:id', deleteQuiz);
 
 // Routine management routes
 router.post('/routines', createRoutine);

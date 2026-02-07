@@ -7,6 +7,7 @@ import teacherRoutes from './routes/teacher.routes';
 import adminRoutes from './routes/admin.routes';
 import commonRoutes from './routes/common.routes';
 import publicRoutes from './routes/public.routes';
+import materialRoutes from './routes/material.routes';
 
 // Load environment variables
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/api/public', publicRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/materials', materialRoutes);
 app.use('/api', commonRoutes);
 
 // Health check

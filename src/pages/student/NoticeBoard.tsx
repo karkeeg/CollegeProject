@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
-import { Bell, AlertCircle } from 'lucide-react';
+import { Bell, AlertCircle, Paperclip } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 interface Notice {
@@ -8,6 +8,7 @@ interface Notice {
   title: string;
   content: string;
   priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+  attachmentUrl: string | null;
   createdAt: string;
   createdBy: {
     fullName: string;
@@ -113,6 +114,20 @@ export default function NoticeBoard() {
                 </div>
                 
                 <p className="text-gray-700 mb-4 leading-relaxed">{notice.content}</p>
+                
+                {notice.attachmentUrl && (
+                  <div className="mb-4">
+                    <a 
+                      href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${notice.attachmentUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors font-medium shadow-sm"
+                    >
+                      <Paperclip size={16} />
+                      View Attachment
+                    </a>
+                  </div>
+                )}
                 
                 <div className="flex items-center justify-between text-sm text-gray-500">
                   <span>Posted by: <strong>{notice.createdBy.fullName}</strong></span>

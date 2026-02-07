@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
-import { FileText, Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { FileText, Calendar, CheckCircle, XCircle, Clock, Paperclip, Download, BrainCircuit } from 'lucide-react';
 import Modal from '../../components/Modal';
+import FileUploader from '../../components/ui/FileUploader';
+import QuizTakingView from '../../pages/student/QuizTakingView';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
@@ -11,8 +13,10 @@ interface Assignment {
   description: string | null;
   dueDate: string;
   maxMarks: number;
+  attachmentUrl: string | null;
   createdAt: string;
   subject: {
+    id: number;
     code: string;
     name: string;
   };
@@ -21,6 +25,7 @@ interface Assignment {
     submittedAt: string;
     marksObtained: number | null;
     feedback: string | null;
+    attachmentUrl: string | null;
   }>;
 }
 
@@ -28,6 +33,7 @@ export default function StudentAssignments() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submittingAssignment, setSubmittingAssignment] = useState<Assignment | null>(null);
+  const [takingQuizSubject, setTakingQuizSubject] = useState<{id: number, name: string} | null>(null);
 
   useEffect(() => {
     fetchAssignments();
@@ -100,6 +106,20 @@ export default function StudentAssignments() {
                       </span>
                     </div>
                     
+                    {assignment.attachmentUrl && (
+                      <div className="mb-3">
+                        <a 
+                          href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${assignment.attachmentUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-xs text-indigo-600 font-bold hover:bg-indigo-50 px-2 py-1 rounded transition border border-indigo-100 bg-indigo-50/30"
+                        >
+                          <Paperclip size={14} />
+                          Download Materials
+                        </a>
+                      </div>
+                    )}
+                    
                     {assignment.description && (
                       <p className="text-gray-600 mb-3">{assignment.description}</p>
                     )}
@@ -116,6 +136,15 @@ export default function StudentAssignments() {
                   </div>
                   
                   <div className="flex flex-col items-end gap-2">
+                    <button
+                      onClick={() => setTakingQuizSubject({ id: assignment.subject.id, name: assignment.subject.name })}
+                      className="text-xs flex items-center gap-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-lg font-bold hover:bg-purple-200 transition mb-1"
+                      title="Take Quiz for this Subject"
+                    >
+                      <BrainCircuit size={14} />
+                      Quiz
+                    </button>
+
                     <div className={`flex items-center gap-1 font-bold ${status.color}`}>
                       {status.status === 'graded' && <CheckCircle size={18} />}
                       {status.status === 'submitted' && <Clock size={18} />}
@@ -152,6 +181,20 @@ export default function StudentAssignments() {
                       Submitted on: {new Date(submission.submittedAt).toLocaleString()}
                     </p>
                     
+                    {submission.attachmentUrl && (
+                      <div className="mt-2">
+                        <a 
+                          href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${submission.attachmentUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs text-indigo-600 font-bold hover:underline"
+                        >
+                          <Paperclip size={14} />
+                          View Your Submitted File
+                        </a>
+                      </div>
+                    )}
+                    
                     {submission.feedback && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <p className="text-sm font-bold text-blue-900 mb-1">Teacher's Feedback:</p>
@@ -183,6 +226,21 @@ export default function StudentAssignments() {
           />
         </Modal>
       )}
+
+      {/* Quiz Modal */}
+      {takingQuizSubject && (
+        <Modal
+          isOpen={!!takingQuizSubject}
+          onClose={() => setTakingQuizSubject(null)}
+          title={`Quiz: ${takingQuizSubject.name}`}
+        >
+          <QuizTakingView
+             subjectId={takingQuizSubject.id}
+             subjectName={takingQuizSubject.name}
+             onClose={() => setTakingQuizSubject(null)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }
@@ -194,6 +252,7 @@ function SubmissionForm({ assignment, onCheckCompletion, onCancel }: {
   onCancel: () => void;
 }) {
   const [content, setContent] = useState('');
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,7 +260,17 @@ function SubmissionForm({ assignment, onCheckCompletion, onCancel }: {
     setLoading(true);
 
     try {
-      await api.post(`/student/homework/${assignment.id}/submit`, { content });
+      const data = new FormData();
+      data.append('content', content);
+      if (attachment) {
+        data.append('attachment', attachment);
+      }
+
+      await api.post(`/student/homework/${assignment.id}/submit`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       toast.success("Assignment submitted successfully");
       onCheckCompletion();
     } catch (err: any) {
@@ -235,6 +304,8 @@ function SubmissionForm({ assignment, onCheckCompletion, onCancel }: {
           className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
         />
       </div>
+
+      <FileUploader onFileSelect={setAttachment} label="Upload Your Solution (Optional)" />
 
       <div className="flex justify-end gap-3 pt-4">
         <button

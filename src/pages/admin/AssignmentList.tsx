@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
 import { Plus, Trash2 } from 'lucide-react';
-import Modal from '../../components/Modal';
 import AssignmentForm from './AssignmentForm';
 import toast from 'react-hot-toast';
+import { useModal } from '../../hooks/useModal';
 
 interface Assignment {
   id: number;
@@ -15,9 +15,9 @@ interface Assignment {
 }
 
 export default function AssignmentList() {
+  const { openModal, closeModal } = useModal();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
     fetchAssignments();
@@ -41,10 +41,39 @@ export default function AssignmentList() {
       await api.delete(`/admin/assignments/${id}`);
       setAssignments(prev => prev.filter(a => a.id !== id));
       toast.success("Assignment deleted successfully");
+      closeModal();
     } catch (error) {
       console.error('Error deleting assignment:', error);
       toast.error("Failed to delete assignment");
     }
+  };
+
+  const handleConfirmDelete = (assignment: Assignment) => {
+    openModal(
+      <div className="p-4">
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to delete the assignment for <strong>{assignment.subject?.name}</strong>? This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button onClick={closeModal} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition font-medium">Cancel</button>
+          <button onClick={() => handleDelete(assignment.id)} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg shadow-red-200">Delete Permanently</button>
+        </div>
+      </div>,
+      { title: "Delete Assignment", size: "sm" }
+    );
+  };
+
+  const handleAdd = () => {
+    openModal(
+      <AssignmentForm 
+        onCheckCompletion={() => {
+          closeModal();
+          fetchAssignments();
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Assign Teacher to Subject", size: "md" }
+    );
   };
 
   return (
@@ -52,7 +81,7 @@ export default function AssignmentList() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Teacher Assignments</h1>
         <button 
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={handleAdd}
           className="bg-indigo-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition font-bold shadow-lg shadow-indigo-200"
         >
           <Plus size={20} />
@@ -97,7 +126,7 @@ export default function AssignmentList() {
                     <td className="px-6 py-4 text-gray-600">{assignment.academicYear}</td>
                     <td className="px-6 py-4 text-right">
                       <button 
-                        onClick={() => handleDelete(assignment.id)}
+                        onClick={() => handleConfirmDelete(assignment)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                         title="Delete Assignment"
                       >
@@ -112,19 +141,6 @@ export default function AssignmentList() {
         </div>
       </div>
 
-      <Modal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)}
-        title="Assign Teacher to Subject"
-      >
-        <AssignmentForm 
-          onCheckCompletion={() => {
-            setIsAddModalOpen(false);
-            fetchAssignments();
-          }}
-          onCancel={() => setIsAddModalOpen(false)}
-        />
-      </Modal>
     </div>
   );
 }

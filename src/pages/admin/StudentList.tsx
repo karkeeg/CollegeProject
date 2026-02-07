@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
 import { UserPlus, Search, Trash2, Edit, Upload } from 'lucide-react';
-import Modal from '../../components/Modal';
 import StudentForm from './StudentForm';
 import BulkUploadModal from '../../components/admin/BulkUploadModal';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import SemesterSelector from '../../components/common/SemesterSelector';
+import { useModal } from '../../hooks/useModal';
 
 interface Student {
   id: string;
@@ -28,19 +28,13 @@ interface Student {
 }
 
 export default function StudentList() {
+  const { openModal, closeModal } = useModal();
+  
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProgram, setSelectedProgram] = useState<string | number>('');
   const [selectedSemester, setSelectedSemester] = useState<string | number>('');
-  
-  // Modal State
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [showBulkModal, setShowBulkModal] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-
-  // Delete State
-  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
 
   useEffect(() => {
     fetchStudents();
@@ -66,28 +60,70 @@ export default function StudentList() {
     }
   }
 
-  const handleDelete = async () => {
-      if (!studentToDelete) return;
-
+  const handleDelete = async (studentId: string) => {
       try {
-          await api.delete(`/admin/students/${studentToDelete.id}`);
-          setStudents(prev => prev.filter(s => s.id !== studentToDelete.id));
+          await api.delete(`/admin/students/${studentId}`);
+          setStudents(prev => prev.filter(s => s.id !== studentId));
           toast.success("Student deleted successfully");
+          closeModal();
       } catch (err: any) {
           toast.error("Failed to delete student: " + (err.response?.data?.error || err.message));
-      } finally {
-          setStudentToDelete(null);
       }
   };
 
+  const handleConfirmDelete = (student: Student) => {
+    openModal(
+      <div className="p-4">
+          <p className="text-slate-600 mb-6">
+              Are you sure you want to delete <strong>{student.fullName}</strong>? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+              <button onClick={closeModal} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button onClick={() => handleDelete(student.id)} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete Permanently</button>
+          </div>
+      </div>,
+      { title: "Delete Student", size: "sm" }
+    );
+  };
+
   const handleEdit = (student: Student) => {
-      setEditingStudent(student);
-      setIsFormOpen(true);
+      openModal(
+        <StudentForm 
+          initialData={student}
+          onCheckCompletion={() => {
+            closeModal();
+            setTimeout(fetchStudents, 500);
+          }}
+          onCancel={closeModal}
+        />,
+        { title: "Edit Student", size: "2xl" }
+      );
   };
 
   const handleAdd = () => {
-      setEditingStudent(null);
-      setIsFormOpen(true);
+    openModal(
+      <StudentForm 
+        onCheckCompletion={() => {
+          closeModal();
+          setTimeout(fetchStudents, 500);
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Add New Student", size: "2xl" }
+    );
+  };
+
+  const handleBulkImport = () => {
+    openModal(
+      <BulkUploadModal 
+        onClose={closeModal}
+        onSuccess={() => {
+          fetchStudents();
+        }}
+        type="students"
+      />,
+      { title: "Bulk Import Students", size: "lg" }
+    );
   };
 
   const filteredStudents = students.filter(student => {
@@ -104,7 +140,7 @@ export default function StudentList() {
         <h1 className="text-2xl font-bold text-gray-900">Students</h1>
         <div className="flex gap-2">
             <button 
-                onClick={() => setShowBulkModal(true)}
+                onClick={handleBulkImport}
                 className="bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-gray-50 transition font-bold"
             >
                 <Upload size={18} />
@@ -136,7 +172,10 @@ export default function StudentList() {
           <SemesterSelector 
             selectedProgramId={selectedProgram}
             selectedSemesterId={selectedSemester}
-            onProgramChange={(pid) => setSelectedProgram(pid)}
+            onProgramChange={(pid) => {
+              setSelectedProgram(pid);
+              setSelectedSemester(''); // Reset semester filter
+            }}
             onSemesterChange={(sid) => setSelectedSemester(sid)}
             stacked={false}
             required={false}
@@ -189,7 +228,7 @@ export default function StudentList() {
                         <button onClick={() => handleEdit(student)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
                           <Edit size={18} />
                         </button>
-                        <button onClick={() => setStudentToDelete(student)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
+                        <button onClick={() => handleConfirmDelete(student)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -202,44 +241,6 @@ export default function StudentList() {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      <Modal 
-        isOpen={isFormOpen} 
-        onClose={() => setIsFormOpen(false)}
-        title={editingStudent ? "Edit Student" : "Add New Student"}
-      >
-        <StudentForm 
-          initialData={editingStudent}
-          onCheckCompletion={() => {
-            setIsFormOpen(false);
-            setTimeout(fetchStudents, 500); // Delay refresh
-          }}
-          onCancel={() => setIsFormOpen(false)}
-        />
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      {studentToDelete && (
-         <Modal isOpen={!!studentToDelete} onClose={() => setStudentToDelete(null)} title="Delete Student">
-            <div className="p-4">
-                <p className="text-slate-600 mb-6">
-                    Are you sure you want to delete <strong>{studentToDelete.fullName}</strong>? This action cannot be undone.
-                </p>
-                <div className="flex justify-end gap-3">
-                    <button onClick={() => setStudentToDelete(null)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                    <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete Permanently</button>
-                </div>
-            </div>
-         </Modal>
-      )}
-
-      {/* Bulk Upload Modal */}
-      <BulkUploadModal 
-        isOpen={showBulkModal}
-        onClose={() => setShowBulkModal(false)}
-        onSuccess={fetchStudents}
-        type="students"
-      />
     </div>
   );
 }

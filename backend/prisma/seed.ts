@@ -27,14 +27,19 @@ async function main() {
       create: { id: 4, name: '4th Semester', batchYear: 2022 },
     }),
     prisma.semester.upsert({
-      where: { id: 5 },
-      update: {},
-      create: { id: 5, name: '5th Semester', batchYear: 2021 },
-    }),
-    prisma.semester.upsert({
       where: { id: 6 },
       update: {},
       create: { id: 6, name: '6th Semester', batchYear: 2021 },
+    }),
+    prisma.semester.upsert({
+      where: { id: 7 },
+      update: {},
+      create: { id: 7, name: '7th Semester', batchYear: 2020 },
+    }),
+    prisma.semester.upsert({
+      where: { id: 8 },
+      update: {},
+      create: { id: 8, name: '8th Semester', batchYear: 2020 },
     }),
   ]);
 

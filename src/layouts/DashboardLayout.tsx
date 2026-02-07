@@ -1,4 +1,5 @@
 import Sidebar from '../components/Sidebar';
+import DashboardHeader from '../components/DashboardHeader';
 import { useAuth } from '../lib/auth';
 import { Navigate, Outlet } from 'react-router-dom';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -14,10 +15,13 @@ export default function DashboardLayout() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/50 flex">
       <Sidebar />
-      <div className="ml-64 p-8">
-        <Outlet />
+      <div className="flex-1 ml-64 flex flex-col min-h-screen">
+        <DashboardHeader />
+        <main className="p-8 flex-1">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

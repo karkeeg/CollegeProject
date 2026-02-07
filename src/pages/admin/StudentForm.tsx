@@ -43,11 +43,11 @@ export default function StudentForm({ onCheckCompletion, onCancel, initialData }
   };
 
   const handleProgramChange = (id: string) => {
-    setFormData({ ...formData, programId: id, semesterId: '' });
+    setFormData(prev => ({ ...prev, programId: id, semesterId: '' }));
   };
 
   const handleSemesterChange = (id: string) => {
-    setFormData({ ...formData, semesterId: id });
+    setFormData(prev => ({ ...prev, semesterId: id }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

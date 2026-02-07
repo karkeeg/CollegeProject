@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
 import { Plus, Trash2, Edit } from 'lucide-react';
-import Modal from '../../components/Modal';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import SemesterSelector from '../../components/common/SemesterSelector';
+import { useModal } from '../../hooks/useModal';
 
 interface Routine {
   id: number;
@@ -26,28 +26,15 @@ interface Semester {
   programId?: number;
 }
 
-interface Program {
-  id: number;
-  code: string;
-  name: string;
-}
-
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 export default function RoutineList() {
+  const { openModal, closeModal } = useModal();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
-  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProgram, setSelectedProgram] = useState<number | null>(null);
   const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
-
-  // Modal State
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
-
-  // Delete State
-  const [routineToDelete, setRoutineToDelete] = useState<Routine | null>(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -56,18 +43,11 @@ export default function RoutineList() {
 
   async function fetchInitialData() {
     try {
-      const [semRes, progRes] = await Promise.all([
+      const [semRes] = await Promise.all([
         api.get('/semesters'),
         api.get('/programs')
       ]);
       setSemesters(semRes.data);
-      setPrograms(progRes.data);
-
-      if (progRes.data.length > 0) {
-        setSelectedProgram(progRes.data[0].id);
-        const firstSem = semRes.data.find((s: any) => s.programId === progRes.data[0].id);
-        if (firstSem) setSelectedSemester(firstSem.id);
-      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -86,28 +66,60 @@ export default function RoutineList() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!routineToDelete) return;
-
+  const handleDelete = async (id: number) => {
     try {
-      await api.delete(`/admin/routines/${routineToDelete.id}`);
-      setRoutines(prev => prev.filter(r => r.id !== routineToDelete.id));
+      await api.delete(`/admin/routines/${id}`);
+      setRoutines(prev => prev.filter(r => r.id !== id));
       toast.success("Routine deleted successfully");
+      closeModal();
     } catch (err: any) {
       toast.error("Failed to delete routine: " + (err.response?.data?.error || err.message));
-    } finally {
-      setRoutineToDelete(null);
     }
   };
 
+  const handleConfirmDelete = (routine: Routine) => {
+    openModal(
+      <div className="p-4">
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to delete this schedule for <strong>{routine.subject.name}</strong>? This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button onClick={closeModal} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition font-medium">Cancel</button>
+          <button onClick={() => handleDelete(routine.id)} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg shadow-red-200">Delete Permanently</button>
+        </div>
+      </div>,
+      { title: "Delete Schedule", size: "sm" }
+    );
+  };
+
   const handleEdit = (routine: Routine) => {
-    setEditingRoutine(routine);
-    setIsFormOpen(true);
+    openModal(
+      <RoutineForm
+        initialData={routine}
+        semesters={semesters}
+        onCheckCompletion={() => {
+          closeModal();
+          fetchRoutines();
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Edit Schedule", size: "2xl" }
+    );
   };
 
   const handleAdd = () => {
-    setEditingRoutine(null);
-    setIsFormOpen(true);
+    openModal(
+      <RoutineForm
+        initialData={null}
+        semesters={semesters}
+        onCheckCompletion={() => {
+          closeModal();
+          fetchRoutines();
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Add New Schedule", size: "2xl" }
+    );
   };
 
   const filteredRoutines = selectedSemester
@@ -183,7 +195,7 @@ export default function RoutineList() {
                         <button onClick={() => handleEdit(routine)} className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors">
                           <Edit size={16} />
                         </button>
-                        <button onClick={() => setRoutineToDelete(routine)} className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
+                        <button onClick={() => handleConfirmDelete(routine)} className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -194,39 +206,6 @@ export default function RoutineList() {
             </div>
           ))}
         </div>
-      )}
-
-      {/* Add/Edit Modal */}
-      <Modal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        title={editingRoutine ? "Edit Schedule" : "Add New Schedule"}
-      >
-        <RoutineForm
-          initialData={editingRoutine}
-          semesters={semesters}
-          programs={programs}
-          onCheckCompletion={() => {
-            setIsFormOpen(false);
-            fetchRoutines();
-          }}
-          onCancel={() => setIsFormOpen(false)}
-        />
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      {routineToDelete && (
-        <Modal isOpen={!!routineToDelete} onClose={() => setRoutineToDelete(null)} title="Delete Schedule">
-          <div className="p-4">
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this schedule for <strong>{routineToDelete.subject.name}</strong>? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setRoutineToDelete(null)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition font-medium">Cancel</button>
-              <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg shadow-red-200">Delete Permanently</button>
-            </div>
-          </div>
-        </Modal>
       )}
     </div>
   );
@@ -239,10 +218,9 @@ interface Subject {
 }
 
 // Routine Form Component
-function RoutineForm({ initialData, semesters, programs, onCheckCompletion, onCancel }: {
+function RoutineForm({ initialData, semesters, onCheckCompletion, onCancel }: {
   initialData: Routine | null;
   semesters: Semester[];
-  programs: Program[];
   onCheckCompletion: () => void;
   onCancel: () => void;
 }) {
@@ -284,15 +262,16 @@ function RoutineForm({ initialData, semesters, programs, onCheckCompletion, onCa
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleProgramChange = (id: string) => {
-    setFormData({ ...formData, programId: id, semesterId: '', subjectId: '' });
+    setFormData(prev => ({ ...prev, programId: id, semesterId: '', subjectId: '' }));
   };
 
   const handleSemesterChange = (id: string) => {
-    setFormData({ ...formData, semesterId: id, subjectId: '' });
+    setFormData(prev => ({ ...prev, semesterId: id, subjectId: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../../lib/api';
 import { Plus, Search, Book, Trash2, Edit } from 'lucide-react';
-import Modal from '../../components/Modal';
 import SubjectForm from './SubjectForm';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import SemesterSelector from '../../components/common/SemesterSelector';
+import { useModal } from '../../hooks/useModal';
 
 interface Subject {
   id: number;
@@ -33,17 +33,13 @@ interface Subject {
 }
 
 export default function SubjectList() {
+  const { openModal, closeModal } = useModal();
+  
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProgram, setSelectedProgram] = useState<string | number>('');
   const [selectedSemester, setSelectedSemester] = useState<string | number>('');
-  
-  // Modals
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-  
-  const [subjectToDelete, setSubjectToDelete] = useState<Subject | null>(null);
 
   useEffect(() => {
     fetchSubjects();
@@ -62,27 +58,57 @@ export default function SubjectList() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!subjectToDelete) return;
+  const handleDelete = async (subjectId: number) => {
     try {
-        await api.delete(`/admin/subjects/${subjectToDelete.id}`);
-        setSubjects(prev => prev.filter(s => s.id !== subjectToDelete.id));
+        await api.delete(`/admin/subjects/${subjectId}`);
+        setSubjects(prev => prev.filter(s => s.id !== subjectId));
         toast.success("Subject deleted successfully");
+        closeModal();
     } catch (err: any) {
         toast.error("Failed to delete subject. It may have associated marks/attendance.");
-    } finally {
-        setSubjectToDelete(null);
     }
   };
 
+  const handleConfirmDelete = (subject: Subject) => {
+    openModal(
+      <div className="p-4">
+          <p className="text-slate-600 mb-6">
+              Are you sure you want to delete <strong>{subject.name}</strong>? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+              <button onClick={closeModal} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button onClick={() => handleDelete(subject.id)} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete Permanently</button>
+          </div>
+      </div>,
+      { title: "Delete Subject", size: "sm" }
+    );
+  };
+
   const handleEdit = (subject: Subject) => {
-      setEditingSubject(subject);
-      setIsFormOpen(true);
+      openModal(
+        <SubjectForm 
+          initialData={subject}
+          onCheckCompletion={() => {
+            closeModal();
+            fetchSubjects();
+          }}
+          onCancel={closeModal}
+        />,
+        { title: "Edit Subject", size: "xl" }
+      );
   };
 
   const handleAdd = () => {
-      setEditingSubject(null);
-      setIsFormOpen(true);
+    openModal(
+      <SubjectForm 
+        onCheckCompletion={() => {
+          closeModal();
+          fetchSubjects();
+        }}
+        onCancel={closeModal}
+      />,
+      { title: "Add New Subject", size: "xl" }
+    );
   };
 
   const filteredSubjects = subjects.filter(subject => {
@@ -122,7 +148,10 @@ export default function SubjectList() {
           <SemesterSelector 
             selectedProgramId={selectedProgram}
             selectedSemesterId={selectedSemester}
-            onProgramChange={(pid) => setSelectedProgram(pid)}
+            onProgramChange={(pid) => {
+              setSelectedProgram(pid);
+              setSelectedSemester(''); // Reset semester filter
+            }}
             onSemesterChange={(sid) => setSelectedSemester(sid)}
             stacked={false}
             required={false}
@@ -181,7 +210,7 @@ export default function SubjectList() {
                         <button onClick={() => handleEdit(subject)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Edit">
                           <Edit size={18} />
                         </button>
-                        <button onClick={() => setSubjectToDelete(subject)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
+                        <button onClick={() => handleConfirmDelete(subject)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -194,36 +223,6 @@ export default function SubjectList() {
         </div>
       </div>
 
-      {/* Form Modal */}
-      <Modal 
-        isOpen={isFormOpen} 
-        onClose={() => setIsFormOpen(false)}
-        title={editingSubject ? "Edit Subject" : "Add New Subject"}
-      >
-        <SubjectForm 
-          initialData={editingSubject}
-          onCheckCompletion={() => {
-            setIsFormOpen(false);
-            fetchSubjects();
-          }}
-          onCancel={() => setIsFormOpen(false)}
-        />
-      </Modal>
-
-      {/* Delete Confirmation */}
-      {subjectToDelete && (
-         <Modal isOpen={!!subjectToDelete} onClose={() => setSubjectToDelete(null)} title="Delete Subject">
-            <div className="p-4">
-                <p className="text-slate-600 mb-6">
-                    Are you sure you want to delete <strong>{subjectToDelete.name}</strong>? This action cannot be undone.
-                </p>
-                <div className="flex justify-end gap-3">
-                    <button onClick={() => setSubjectToDelete(null)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                    <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete Permanently</button>
-                </div>
-            </div>
-         </Modal>
-      )}
     </div>
   );
 }
